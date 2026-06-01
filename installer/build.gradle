@@ -1,0 +1,87 @@
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+
+def generateInstallerMeta = tasks.register('generateInstallerMeta') {
+    def outDir = layout.buildDirectory.dir('generated-src')
+    outputs.dir(outDir)
+    doLast {
+        def loaders = rootProject.subprojects.findAll { it.ext.has('targetMcVersion') }
+        def entries = loaders.collect { mod ->
+            def tag = mod.findProperty('tag') ?: mod.name
+            def ver = mod.version?.toString()
+            if (!ver || ver == 'unspecified') throw new GradleException("${mod.name} has no version set in gradle.properties")
+            def mc  = mod.ext.targetMcVersion
+            "        new BundledLoader(\"${mc}\", \"${tag}\", \"${ver}\")"
+        }.join(',\n')
+        def isSnapshot = loaders.any { mod -> mod.version?.toString()?.endsWith('-SNAPSHOT') ?: false }
+
+        def f = outDir.get().file('sh/ndt/seam/installer/InstallerMeta.java').asFile
+        f.parentFile.mkdirs()
+        f.text = """\
+package sh.ndt.seam.installer;
+
+public final class InstallerMeta {
+    public static final boolean IS_SNAPSHOT = ${isSnapshot};
+
+    public static final BundledLoader[] LOADERS = {
+${entries}
+    };
+
+    public static BundledLoader forMcVersion(String mcVersion) {
+        for (BundledLoader l : LOADERS) {
+            if (l.mcVersion.equals(mcVersion)) return l;
+        }
+        return null;
+    }
+
+    public static final class BundledLoader {
+        public final String mcVersion;
+        public final String tag;
+        public final String version;
+        public BundledLoader(String mcVersion, String tag, String version) {
+            this.mcVersion = mcVersion; this.tag = tag; this.version = version;
+        }
+        public String resourceName() { return "seam-agent-" + tag + ".jar"; }
+        public boolean isSnapshot()  { return version.endsWith("-SNAPSHOT"); }
+    }
+
+    private InstallerMeta() {}
+}
+"""
+    }
+}
+
+sourceSets.main.java.srcDir(layout.buildDirectory.dir('generated-src'))
+compileJava.dependsOn(generateInstallerMeta)
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.10.1'
+}
+
+tasks.named('processResources') {
+    rootProject.subprojects.findAll { it.ext.has('targetMcVersion') }.each { mod ->
+        def tag     = mod.findProperty('tag') ?: mod.name
+        def jarTask = mod.tasks.named('jar')
+        dependsOn jarTask
+        from(files(jarTask)) {
+            into 'sh/ndt/seam/installer'
+            rename { "seam-agent-${tag}.jar" }
+        }
+    }
+}
+
+jar {
+    archiveBaseName.set('seam-installer')
+    archiveVersion.set(project.version)
+
+    manifest {
+        attributes 'Main-Class': 'sh.ndt.seam.installer.Main'
+    }
+
+    dependsOn configurations.runtimeClasspath.buildDependencies
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

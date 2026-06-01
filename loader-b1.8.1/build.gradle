@@ -1,0 +1,48 @@
+ext.targetMcVersion = 'Beta 1.8.1'
+
+def generateSeamMeta = tasks.register('generateSeamMeta') {
+    def ver = project.version
+    def mc  = project.ext.targetMcVersion
+    def outDir = layout.buildDirectory.dir('generated-src')
+    outputs.dir(outDir)
+    doLast {
+        def f = outDir.get().file('sh/ndt/seam/b181/SeamMeta.java').asFile
+        f.parentFile.mkdirs()
+        f.text = """\
+package sh.ndt.seam.b181;
+
+public final class SeamMeta {
+    public static final String VERSION    = "${ver}";
+    public static final String MC_VERSION = "${mc}";
+    private SeamMeta() {}
+}
+"""
+    }
+}
+
+sourceSets.main.java.srcDir(layout.buildDirectory.dir('generated-src'))
+compileJava.dependsOn(generateSeamMeta)
+
+dependencies {
+    implementation project(':loader-core')
+    implementation 'org.ow2.asm:asm:9.7'
+}
+
+jar {
+    archiveBaseName.set('seam-b181')
+    archiveVersion.set(project.version)
+
+    manifest {
+        attributes(
+            'Premain-Class'       : 'sh.ndt.seam.b181.SeamAgent',
+            'Can-Redefine-Classes': 'true',
+        )
+    }
+
+    dependsOn configurations.runtimeClasspath.buildDependencies
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    // ASM stays on the system classpath (asm-all-4.1 provided by LaunchWrapper);
+    // bundling it here would put it in bootstrap and break VanillaTweakInjector.
+    exclude 'org/objectweb/**'
+}

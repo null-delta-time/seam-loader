@@ -1,0 +1,25 @@
+{
+  "id": "${seam_version_id}",
+  "inheritsFrom": "${mc_version}",
+  "releaseTime": "2026-05-31T00:00:00+00:00",
+  "time": "2026-05-31T00:00:00+00:00",
+  "type": "old_beta",
+  "arguments": {
+    "jvm": [
+      "-Djava.library.path=${natives_directory}",
+      "-Dminecraft.launcher.brand=${launcher_name}",
+      "-Dminecraft.launcher.version=${launcher_version}",
+      "-cp",
+      "${classpath}",
+      "-javaagent:${game_directory}/seam/seam-agent.jar"
+    ],
+    "game": [
+      "${auth_player_name}",
+      "${auth_session}",
+      "--gameDir",
+      "${game_directory}",
+      "--assetsDir",
+      "${game_assets}"
+    ]
+  }
+}
