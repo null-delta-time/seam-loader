@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - run: ./gradlew assemble
+
+  version-bump:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check version bumps
+        run: |
+          FAILED=0
+          BASE=origin/${{ github.base_ref }}
+
+          for props in $(find . -name 'gradle.properties' \
+                -not -path './.gradle/*' -not -path '*/build/*'); do
+            grep -q '^version=' "$props" || continue
+            dir=$(dirname "$props" | sed 's|^\./||')
+
+            CHANGED=$(git diff --name-only "$BASE"...HEAD -- "$dir/src/")
+            [ -n "$CHANGED" ] || continue
+
+            CURRENT=$(grep '^version=' "$props" | cut -d= -f2)
+            BASE_VER=$(git show "$BASE:$props" 2>/dev/null | grep '^version=' | cut -d= -f2 || echo "")
+
+            if [ "$CURRENT" = "$BASE_VER" ]; then
+              echo "FAIL: $dir/src changed but version is still $CURRENT — bump it"
+              FAILED=1
+            elif [[ "$CURRENT" != *-SNAPSHOT ]]; then
+              echo "FAIL: $dir version '$CURRENT' must end in -SNAPSHOT on PRs"
+              FAILED=1
+            else
+              echo "OK: $dir bumped $BASE_VER -> $CURRENT"
+            fi
+          done
+
+          exit $FAILED
