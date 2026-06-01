@@ -8,7 +8,7 @@ on:
         type: boolean
         default: false
       release_loaders:
-        description: 'Loader tags to release (comma-separated, e.g. b181,b170) or "all"'
+        description: 'Loader tags to release: "all", comma-separated (e.g. b181,b170), or empty/none to skip'
         type: string
         default: 'all'
       release_installer:
@@ -53,8 +53,15 @@ jobs:
         run: |
           FILTER="${{ inputs.release_loaders }}"
           RELEASED=false
+          if [ -z "$FILTER" ] || [ "$FILTER" = "none" ]; then
+            echo "No loaders selected — skipping."
+            echo "any=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           for props in loader-*/gradle.properties; do
             dir=$(dirname "$props")
+            # Skip non-version-specific modules (loader-core, etc.)
+            grep -q "targetMcVersion" "${dir}/build.gradle" || { echo "Skipping ${dir} — no targetMcVersion"; continue; }
             tag_prefix=$(grep "^tag=" "$props" | cut -d= -f2)
             if [ "$FILTER" != "all" ]; then
               echo ",$FILTER," | grep -q ",${tag_prefix}," || { echo "Skipping ${tag_prefix}"; continue; }
