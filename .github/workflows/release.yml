@@ -31,13 +31,14 @@ jobs:
           [ -n "$DIR" ] || { echo "No subproject found with tag=${PREFIX}"; exit 1; }
 
           ./gradlew :${DIR}:jar -Pversion=${VERSION}
+          ./gradlew :installer:shadowJar -Pversion=${VERSION}
 
           ./gradlew updateVersionsJson -Pversion=${VERSION}
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add installer/src/main/resources/sh/ndt/seam/installer/versions.json
           git diff --cached --quiet || git commit -m "chore: update versions.json for $TAG"
-          git push
+          git push --follow-tags
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
