@@ -205,7 +205,7 @@ public class InstallerFrame extends JFrame {
                 new Installer(mcDir, this::log).install((String) mcVersionBox.getSelectedItem(), entry);
                 SwingUtilities.invokeLater(() ->
                     logBanner("INSTALLATION COMPLETE",
-                        "Open the Minecraft Launcher and select the \"Seam b1.8.1\" profile."));
+                        "Open the Minecraft Launcher and select the \"Seam " + selectedMc + "\" profile."));
             } catch (Exception ex) {
                 StringWriter sw = new StringWriter();
                 ex.printStackTrace(new PrintWriter(sw));

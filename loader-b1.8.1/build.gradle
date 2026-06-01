@@ -1,4 +1,4 @@
-ext.targetMcVersion = 'Beta 1.8.1'
+ext.targetMcVersion = 'b1.8.1'
 
 def generateSeamMeta = tasks.register('generateSeamMeta') {
     def ver = project.version
