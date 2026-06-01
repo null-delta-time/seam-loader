@@ -120,9 +120,15 @@ public class InstallerFrame extends JFrame {
         });
 
         // ── assemble ──────────────────────────────────────────────────────────
+        JLabel versionLabel = new JLabel("Seam Installer v" + InstallerMeta.VERSION);
+        versionLabel.setFont(versionLabel.getFont().deriveFont(Font.PLAIN, 10f));
+        versionLabel.setForeground(Color.GRAY);
+        versionLabel.setBorder(new EmptyBorder(2, 8, 4, 8));
+
         JPanel content = new JPanel(new BorderLayout());
         content.add(title, BorderLayout.NORTH);
         content.add(tabs, BorderLayout.CENTER);
+        content.add(versionLabel, BorderLayout.SOUTH);
 
         setContentPane(content);
         pack();
