@@ -38,7 +38,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add installer/src/main/resources/sh/ndt/seam/installer/versions.json
           git diff --cached --quiet || git commit -m "chore: update versions.json for $TAG"
-          git push --follow-tags
+          git push origin HEAD:refs/heads/main --follow-tags
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
