@@ -1,0 +1,14 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'seam'
+
+include 'api'
+include 'loader-core'
+include 'loader-b1.8.1'
+include 'example'
+include 'installer'

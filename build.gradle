@@ -1,0 +1,63 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+// Scans all loader-* subprojects for ext.targetMcVersion and prepends a
+// {version, url} entry for seamVersion to the matching MC version list.
+// Run before tagging a release: ./gradlew updateVersionsJson
+// Updates versions.json for a specific loader module release.
+// Reads the module's own `version` property and `ext.releaseTagPrefix`.
+// Run automatically by the per-module release workflows; call manually with
+//   ./gradlew updateVersionsJson -Pb181Version=1.2.3
+tasks.register('updateVersionsJson') {
+    doLast {
+        def ghRepo       = findProperty('githubRepo') ?: ''
+        def versionsFile = file('installer/src/main/resources/sh/ndt/seam/installer/versions.json')
+        def existing     = new JsonSlurper().parse(versionsFile) as Map ?: [:]
+        def updated      = false
+
+        subprojects.each { mod ->
+            if (!mod.ext.has('targetMcVersion')) return
+            String modVer   = mod.version?.toString()
+            if (!modVer || modVer == 'unspecified' || modVer.endsWith('-SNAPSHOT')) {
+                println "Skipping ${mod.name} — version '${modVer}' is snapshot or unset."
+                return
+            }
+            String mcVer    = mod.ext.targetMcVersion
+            String tagPrefix = mod.findProperty('tag') ?: mod.name
+            String baseName  = mod.tasks.named('jar').get().archiveBaseName.get()
+            String url = "https://github.com/${ghRepo}/releases/download/${tagPrefix}-v${modVer}/${baseName}-${modVer}.jar"
+
+            List list = (existing[mcVer] as List ?: []).toList()
+            def already = list.find { it instanceof Map && it.version == modVer }
+            if (!already) {
+                list.add(0, [version: modVer, url: url])
+                existing[mcVer] = list
+                println "Added ${mod.name} ${modVer} for MC ${mcVer}"
+                updated = true
+            } else {
+                println "Already present: ${mod.name} ${modVer} for MC ${mcVer}"
+            }
+        }
+
+        if (updated) {
+            versionsFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(existing)) + '\n'
+            println "versions.json updated"
+        }
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+
+    // Agent modules (api, loader-core, loader-b1.8.1) must run on Java 8
+    // because the Minecraft launcher uses jre-legacy (Java 8) for beta versions.
+    // installer overrides this to 17 since it runs on the user's modern JDK.
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    repositories {
+        mavenCentral()
+    }
+}
