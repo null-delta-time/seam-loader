@@ -25,7 +25,8 @@ public final class ConfigManager {
 
     public static void load(String modId) {
         if (configDir == null) return;
-        Path file = configDir.resolve(modId + ".json");
+        Path file = configDir.resolve(modId + ".json").normalize();
+        if (!file.startsWith(configDir)) return;
         if (!Files.exists(file)) return;
         try {
             String json = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
@@ -47,8 +48,9 @@ public final class ConfigManager {
                 Object val = all.get(e.key());
                 if (val != null) toSave.put(e.key(), val);
             }
-            Files.write(configDir.resolve(modId + ".json"),
-                toJson(toSave).getBytes(StandardCharsets.UTF_8));
+            Path file = configDir.resolve(modId + ".json").normalize();
+            if (!file.startsWith(configDir)) return;
+            Files.write(file, toJson(toSave).getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             System.err.println("[Seam] Failed to save config for " + modId + ": " + e);
         }
