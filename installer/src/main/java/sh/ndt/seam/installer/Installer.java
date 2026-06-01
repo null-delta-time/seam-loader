@@ -31,7 +31,7 @@ public class Installer {
 
         InstallerMeta.BundledLoader bundled = InstallerMeta.forMcVersion(mcVersion);
         Path agentDest = seamDir.resolve("seam-agent.jar");
-        if (entry.url() == null || (bundled != null && entry.version().equals(bundled.version))) {
+        if (entry.url() == null) {
             if (bundled == null) throw new IOException(
                 "No bundled agent for MC version '" + mcVersion + "' — rebuild installer or choose a downloadable version.");
             log("Extracting bundled seam-agent.jar...");
