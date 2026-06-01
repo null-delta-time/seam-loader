@@ -66,9 +66,9 @@ dependencies {
 }
 
 tasks.named('processResources') {
-    def loaders = rootProject.subprojects.findAll { it.ext.has('targetMcVersion') }
-    def isSnapshot = loaders.any { it.version?.toString()?.endsWith('-SNAPSHOT') ?: false }
+    def isSnapshot = (findProperty('installerVersion') ?: project.version).toString().endsWith('-SNAPSHOT')
     if (!isSnapshot) return
+    def loaders = rootProject.subprojects.findAll { it.ext.has('targetMcVersion') }
     loaders.each { mod ->
         def tag     = mod.findProperty('tag') ?: mod.name
         def jarTask = mod.tasks.named('jar')
