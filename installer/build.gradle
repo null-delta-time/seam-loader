@@ -18,6 +18,7 @@ def generateInstallerMeta = tasks.register('generateInstallerMeta') {
             "        new BundledLoader(\"${mc}\", \"${display}\", \"${tag}\", \"${ver}\")"
         }.join(',\n')
         def isSnapshot = loaders.any { mod -> mod.version?.toString()?.endsWith('-SNAPSHOT') ?: false }
+        def installerVer = (findProperty('installerVersion') ?: project.version).toString()
 
         def f = outDir.get().file('sh/ndt/seam/installer/InstallerMeta.java').asFile
         f.parentFile.mkdirs()
@@ -25,6 +26,7 @@ def generateInstallerMeta = tasks.register('generateInstallerMeta') {
 package sh.ndt.seam.installer;
 
 public final class InstallerMeta {
+    public static final String VERSION = "${installerVer}";
     public static final boolean IS_SNAPSHOT = ${isSnapshot};
 
     public static final BundledLoader[] LOADERS = {
@@ -64,7 +66,10 @@ dependencies {
 }
 
 tasks.named('processResources') {
-    rootProject.subprojects.findAll { it.ext.has('targetMcVersion') }.each { mod ->
+    def loaders = rootProject.subprojects.findAll { it.ext.has('targetMcVersion') }
+    def isSnapshot = loaders.any { it.version?.toString()?.endsWith('-SNAPSHOT') ?: false }
+    if (!isSnapshot) return
+    loaders.each { mod ->
         def tag     = mod.findProperty('tag') ?: mod.name
         def jarTask = mod.tasks.named('jar')
         dependsOn jarTask

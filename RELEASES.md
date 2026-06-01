@@ -10,7 +10,7 @@ The version in `gradle.properties` stays `-SNAPSHOT` at all times. The [CI versi
 |---|---|---|
 | `release_core` | false | Release `api` + `loader-core` (tagged `core-v{VERSION}`) |
 | `release_loaders` | `all` | `all`, comma-separated loader short names (e.g. `b181`), or empty/`none` to skip |
-| `release_installer` | true | Release the installer (do this whenever releasing loaders) |
+| `release_installer` | false | Release the installer (only when installer code itself changes) |
 
 Each loader's tag prefix comes from `tag=` in its `gradle.properties`. A loader is only eligible if its `build.gradle` contains `targetMcVersion`.
 
