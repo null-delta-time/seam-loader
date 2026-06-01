@@ -30,6 +30,7 @@ public class SeamLoader {
                     loadMod(jar);
                 } catch (Exception e) {
                     System.out.println("[Seam] Failed to load mod " + jar.getFileName() + ": " + e);
+                    e.printStackTrace(System.out);
                 }
             }
         }
