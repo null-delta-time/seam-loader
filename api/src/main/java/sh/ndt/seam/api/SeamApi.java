@@ -34,6 +34,7 @@ public final class SeamApi {
         }
     }
 
+    /** Appends a dynamic suffix to the window title on every refresh. */
     public static void appendToTitle(Supplier<String> suffix) {
         titleAppenders.add(suffix);
     }
@@ -42,6 +43,7 @@ public final class SeamApi {
         return !titleAppenders.isEmpty();
     }
 
+    /** Applies registered title appenders to the given base string. Pure — no side effects. */
     public static String processTitle(String base) {
         if (titleAppenders.isEmpty()) return base;
         StringBuilder sb = new StringBuilder(base);
