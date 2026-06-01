@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_core:
+        description: 'Release api + loader-core'
+        type: boolean
+        default: false
+      release_loaders:
+        description: 'Loader tags to release (comma-separated, e.g. b181,b170) or "all"'
+        type: string
+        default: 'all'
+      release_installer:
+        description: 'Release installer (always do this when releasing loaders)'
+        type: boolean
+        default: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Release core
+        if: inputs.release_core
+        run: |
+          VERSION=$(grep "^version=" api/gradle.properties | cut -d= -f2 | sed 's/-SNAPSHOT//')
+          ./gradlew :api:jar :loader-core:jar -Pversion=${VERSION}
+          gh release create "core-v${VERSION}" \
+            api/build/libs/*.jar loader-core/build/libs/*.jar \
+            --generate-notes --latest=false \
+            --title "core-v${VERSION}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Release loaders
+        id: loaders
+        run: |
+          FILTER="${{ inputs.release_loaders }}"
+          RELEASED=false
+          for props in loader-*/gradle.properties; do
+            dir=$(dirname "$props")
+            tag_prefix=$(grep "^tag=" "$props" | cut -d= -f2)
+            if [ "$FILTER" != "all" ]; then
+              echo ",$FILTER," | grep -q ",${tag_prefix}," || { echo "Skipping ${tag_prefix}"; continue; }
+            fi
+            VERSION=$(grep "^version=" "$props" | cut -d= -f2 | sed 's/-SNAPSHOT//')
+            ./gradlew :${dir}:jar -Pversion=${VERSION}
+            gh release create "${tag_prefix}-v${VERSION}" \
+              ${dir}/build/libs/*.jar \
+              --generate-notes --latest=false \
+              --title "${tag_prefix}-v${VERSION}"
+            RELEASED=true
+          done
+          echo "any=${RELEASED}" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Update versions.json
+        if: steps.loaders.outputs.any == 'true'
+        run: |
+          ./gradlew updateVersionsJson
+          git add installer/src/main/resources/sh/ndt/seam/installer/versions.json
+          git diff --cached --quiet || git commit -m "chore: update versions.json"
+          git push origin HEAD:refs/heads/main
+
+      - name: Release installer
+        if: inputs.release_installer
+        run: |
+          VERSION=$(grep "^version=" installer/gradle.properties | cut -d= -f2 | sed 's/-SNAPSHOT//')
+          ./gradlew :installer:jar -PinstallerVersion=${VERSION}
+          gh release create "installer-v${VERSION}" \
+            installer/build/libs/seam-installer-*.jar \
+            --generate-notes --latest \
+            --title "installer-v${VERSION}"
+        env:
+          GH_TOKEN: ${{ github.token }}
