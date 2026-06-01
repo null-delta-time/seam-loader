@@ -10,7 +10,7 @@ on:
       release_loaders:
         description: 'Loader tags to release: "all", comma-separated (e.g. b181,b170), or empty/none to skip'
         type: string
-        default: 'all'
+        default: 'none'
       release_installer:
         description: 'Release installer (only when installer code changes)'
         type: boolean
