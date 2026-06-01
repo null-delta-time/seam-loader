@@ -87,6 +87,7 @@ public final class SeamHooks {
             Class<?> vjCls = null;
             for (Object btn : buttons) {
                 java.lang.reflect.Field gFld = btn.getClass().getDeclaredField("g");
+                gFld.setAccessible(true);
                 if (gFld.getInt(btn) == 3) {
                     texBtn = btn;
                     vjCls = btn.getClass();
@@ -98,9 +99,14 @@ public final class SeamHooks {
             java.lang.reflect.Field widthFld = vjCls.getDeclaredField("a"); // protected
             java.lang.reflect.Field labelFld = vjCls.getDeclaredField("f");
             widthFld.setAccessible(true);
+            labelFld.setAccessible(true);
 
-            int btnX = vjCls.getDeclaredField("c").getInt(texBtn);
-            int btnY = vjCls.getDeclaredField("d").getInt(texBtn);
+            java.lang.reflect.Field cFld = vjCls.getDeclaredField("c");
+            java.lang.reflect.Field dFld = vjCls.getDeclaredField("d");
+            cFld.setAccessible(true);
+            dFld.setAccessible(true);
+            int btnX = cFld.getInt(texBtn);
+            int btnY = dFld.getInt(texBtn);
 
             // Resize existing button → "Texture Packs" (98px wide, left slot)
             widthFld.set(texBtn, 98);
@@ -123,7 +129,9 @@ public final class SeamHooks {
     // Intercepts our Mods button (id=5) before the original switch-on-id logic.
     public static void onMainMenuAction(Object screen, Object button) {
         try {
-            int id = button.getClass().getDeclaredField("g").getInt(button);
+            java.lang.reflect.Field gFld = button.getClass().getDeclaredField("g");
+            gFld.setAccessible(true);
+            int id = gFld.getInt(button);
             if (id == MODS_BTN_ID) {
                 Class<?> qrCls = screen.getClass().getSuperclass();
                 java.lang.reflect.Field lFld = qrCls.getDeclaredField("l");
