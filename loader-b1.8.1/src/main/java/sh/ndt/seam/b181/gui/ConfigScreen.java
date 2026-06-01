@@ -28,6 +28,8 @@ public final class ConfigScreen {
     private static Map<String, Object> pendingValues = null;
     private static List<Object> toggleRefs  = new ArrayList<>();
     private static Object parentScreen      = null;
+    private static boolean dirty            = false;
+    private static Object saveButtonRef     = null;
 
     // ── generated class cache ─────────────────────────────────────────────────
     private static volatile Class<?> generatedClass = null;
@@ -56,8 +58,10 @@ public final class ConfigScreen {
             for (ConfigEntry e : SeamApi.getConfigEntries(modId))
                 pendingValues.putIfAbsent(e.key(), e.defaultValue());
 
-            toggleRefs   = new ArrayList<>();
-            parentScreen = modListScreen;
+            toggleRefs    = new ArrayList<>();
+            parentScreen  = modListScreen;
+            dirty         = false;
+            saveButtonRef = null;
 
             Object screen = generatedClass.getDeclaredConstructor().newInstance();
             Class<?> qrCls = Class.forName(C_GUI_SCREEN, false, lcl);
@@ -100,8 +104,11 @@ public final class ConfigScreen {
             }
 
             int btnY = h - 28;
-            buttons.add(ctor5.newInstance(BTN_SAVE,   w / 2 - 100, btnY, 98, 20, "Save"));
-            buttons.add(ctor5.newInstance(BTN_CANCEL, w / 2 + 2,   btnY, 98, 20, "Cancel"));
+            Object saveBtn = ctor5.newInstance(BTN_SAVE, w / 2 - 100, btnY, 98, 20, "Save");
+            setField(vjCls, "h", saveBtn, false); // disabled until dirty
+            saveButtonRef = saveBtn;
+            buttons.add(saveBtn);
+            buttons.add(ctor5.newInstance(BTN_CANCEL, w / 2 + 2, btnY, 98, 20, "Cancel"));
 
         } catch (Throwable t) {
             System.err.println("[Seam] ConfigScreen.onInit failed: " + t);
@@ -125,6 +132,10 @@ public final class ConfigScreen {
 
             drawCenteredString(fr, "Config — " + pendingModName, w / 2, 10, 0xFFFFFF);
 
+            if (!dirty) {
+                drawCenteredString(fr, "Change a setting to enable Save", w / 2, h - 40, 0x666666);
+            }
+
         } catch (Throwable t) {
             System.err.println("[Seam] ConfigScreen.onDraw failed: " + t);
             t.printStackTrace(System.err);
@@ -145,6 +156,10 @@ public final class ConfigScreen {
                     boolean next = !Boolean.TRUE.equals(pendingValues.get(entry.key()));
                     pendingValues.put(entry.key(), next);
                     setField(vjCls, "f", button, entry.displayName() + ": " + (next ? "ON" : "OFF"));
+                    if (!dirty && saveButtonRef != null) {
+                        dirty = true;
+                        setField(vjCls, "h", saveButtonRef, true);
+                    }
                 }
             } else if (id == BTN_SAVE) {
                 for (ConfigEntry e : entries)
