@@ -19,6 +19,15 @@ import java.util.jar.JarFile;
 
 public class SeamLoader {
 
+    private static SeamLoader instance;
+
+    public static SeamLoader getInstance() { return instance; }
+
+    public static void setInstance(SeamLoader loader) {
+        if (instance != null) throw new IllegalStateException("SeamLoader already initialized");
+        instance = loader;
+    }
+
     private static final Gson GSON = new Gson();
     private final List<ModCandidate> loaded = new ArrayList<>();
 

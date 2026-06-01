@@ -57,6 +57,7 @@ public final class SeamAgent {
         Path gameDir = resolveGameDir();
         SeamLoader loader = new SeamLoader();
         loader.discover(gameDir.resolve("seam/mods"));
+        SeamLoader.setInstance(loader);
         System.setProperty("seam.modCount", String.valueOf(loader.getModCount()));
 
         System.out.println("[Seam] " + SeamMeta.VERSION + " — " +
