@@ -1,0 +1,8 @@
+dependencies {
+    compileOnly project(':api')
+}
+
+jar {
+    archiveBaseName = 'seam-example'
+    archiveVersion  = '1.0.0'
+}

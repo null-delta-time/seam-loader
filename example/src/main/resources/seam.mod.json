@@ -1,0 +1,7 @@
+{
+  "id": "example",
+  "name": "Example Mod",
+  "version": "1.0.0",
+  "description": "Counts client ticks and appends the count to the window title.",
+  "entrypoint": "sh.ndt.seam.mod.example.ExampleMod"
+}
