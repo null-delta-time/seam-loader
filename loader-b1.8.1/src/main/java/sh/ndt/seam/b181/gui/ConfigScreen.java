@@ -194,7 +194,8 @@ public final class ConfigScreen {
     private static void drawCenteredString(Object fr, String text, int cx, int y, int color)
             throws Exception {
         int tw = (int) findMethod(fr.getClass(), "a", String.class).invoke(fr, text);
-        drawString(fr, text, cx - tw / 2, y, color);
+        findMethod(fr.getClass(), "a", String.class, int.class, int.class, int.class)
+            .invoke(fr, text, cx - tw / 2, y, color);
     }
 
     // ── reflection helpers ────────────────────────────────────────────────────
