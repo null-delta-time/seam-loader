@@ -1,6 +1,7 @@
 package sh.ndt.seam.b181.gui;
 
 import org.objectweb.asm.*;
+import sh.ndt.seam.api.SeamApi;
 import sh.ndt.seam.core.ModCandidate;
 import sh.ndt.seam.core.SeamLoader;
 
@@ -178,8 +179,12 @@ public final class ModListScreen {
                 openModsFolder();
 
             } else if (id == BTN_CONFIG) {
-                // TODO: open per-mod config screen (API not defined yet)
-                System.out.println("[Seam] Config screen not yet implemented.");
+                SeamLoader sl = SeamLoader.getInstance();
+                if (sl != null && selectedIdx >= 0 && selectedIdx < sl.getMods().size()) {
+                    String modId = sl.getMods().get(selectedIdx).id();
+                    Object mc = getField(qrCls, "l", screen);
+                    sh.ndt.seam.b181.gui.ConfigScreen.open(mc, screen, modId);
+                }
             }
 
         } catch (Throwable t) {
@@ -303,10 +308,12 @@ public final class ModListScreen {
         if (configButtonRef == null) return;
         try {
             Class<?> vjCls = Class.forName(C_GUI_BUTTON, false, lcl);
-            SeamLoader sl = SeamLoader.getInstance();
-            boolean hasSelection = sl != null && selectedIdx >= 0
-                && selectedIdx < sl.getMods().size();
-            setField(vjCls, "i", configButtonRef, hasSelection);
+            SeamLoader sl  = SeamLoader.getInstance();
+            boolean visible = false;
+            if (sl != null && selectedIdx >= 0 && selectedIdx < sl.getMods().size()) {
+                visible = SeamApi.hasConfig(sl.getMods().get(selectedIdx).id());
+            }
+            setField(vjCls, "i", configButtonRef, visible);
         } catch (Throwable ignored) {}
     }
 

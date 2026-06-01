@@ -1,6 +1,7 @@
 package sh.ndt.seam.b181;
 
 import sh.ndt.seam.b181.SeamMeta;
+import sh.ndt.seam.b181.config.ConfigManager;
 import sh.ndt.seam.core.SeamLoader;
 
 import java.io.ByteArrayOutputStream;
@@ -59,6 +60,10 @@ public final class SeamAgent {
         loader.discover(gameDir.resolve("seam/mods"));
         SeamLoader.setInstance(loader);
         System.setProperty("seam.modCount", String.valueOf(loader.getModCount()));
+
+        // Load persisted config values (mods registered their entries during discover).
+        ConfigManager.init(gameDir);
+        ConfigManager.loadAll();
 
         System.out.println("[Seam] " + SeamMeta.VERSION + " — " +
             loader.getModCount() + " mod(s) found");
