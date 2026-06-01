@@ -210,6 +210,7 @@ public class InstallerFrame extends JFrame {
                 StringWriter sw = new StringWriter();
                 ex.printStackTrace(new PrintWriter(sw));
                 log("ERROR: " + ex.getMessage());
+                log(sw.toString());
                 SwingUtilities.invokeLater(() ->
                     JOptionPane.showMessageDialog(this,
                         "Installation failed:\n" + ex.getMessage(),
