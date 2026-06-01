@@ -36,6 +36,13 @@ public class VersionManifest {
         return versions.keySet();
     }
 
+    public String displayName(String mcVersionId) {
+        for (InstallerMeta.BundledLoader l : InstallerMeta.LOADERS) {
+            if (l.mcVersion.equals(mcVersionId)) return l.displayName;
+        }
+        return mcVersionId;
+    }
+
     public List<VersionEntry> seamVersions(String mcVersion) {
         return versions.getOrDefault(mcVersion, List.of());
     }

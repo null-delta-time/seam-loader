@@ -89,11 +89,22 @@ jobs:
       - name: Release installer
         if: inputs.release_installer
         run: |
-          VERSION=$(grep "^version=" installer/gradle.properties | cut -d= -f2 | sed 's/-SNAPSHOT//')
-          ./gradlew :installer:jar -PinstallerVersion=${VERSION}
-          gh release create "installer-v${VERSION}" \
+          INSTALLER_VER=$(grep "^version=" installer/gradle.properties | cut -d= -f2 | sed 's/-SNAPSHOT//')
+          # Build loaders with their release versions so the bundled agent is not a SNAPSHOT
+          LOADER_TASKS=""
+          VERSION_ARGS=""
+          for props in loader-*/gradle.properties; do
+            dir=$(dirname "$props")
+            grep -q "targetMcVersion" "${dir}/build.gradle" || continue
+            VER=$(grep "^version=" "$props" | cut -d= -f2 | sed 's/-SNAPSHOT//')
+            name=$(basename "$dir")
+            LOADER_TASKS="${LOADER_TASKS} :${dir}:jar"
+            VERSION_ARGS="${VERSION_ARGS} -P${name}.version=${VER}"
+          done
+          ./gradlew ${LOADER_TASKS} :installer:jar -PinstallerVersion=${INSTALLER_VER} ${VERSION_ARGS}
+          gh release create "installer-v${INSTALLER_VER}" \
             installer/build/libs/seam-installer-*.jar \
             --generate-notes --latest \
-            --title "installer-v${VERSION}"
+            --title "installer-v${INSTALLER_VER}"
         env:
           GH_TOKEN: ${{ github.token }}

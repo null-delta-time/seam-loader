@@ -49,6 +49,10 @@ tasks.register('updateVersionsJson') {
 subprojects {
     apply plugin: 'java-library'
 
+    // Per-project version override for release builds: -P<projectName>.version=X
+    def versionOverride = findProperty("${project.name}.version")
+    if (versionOverride) version = versionOverride
+
     // Agent modules (api, loader-core, loader-b1.8.1) must run on Java 8
     // because the Minecraft launcher uses jre-legacy (Java 8) for beta versions.
     // installer overrides this to 17 since it runs on the user's modern JDK.

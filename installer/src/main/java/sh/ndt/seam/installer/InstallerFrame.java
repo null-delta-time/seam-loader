@@ -149,6 +149,15 @@ public class InstallerFrame extends JFrame {
         manifest = m;
         mcVersionBox.removeAllItems();
         m.mcVersions().forEach(mcVersionBox::addItem);
+        mcVersionBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(
+                    JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof String) setText(m.displayName((String) value));
+                return this;
+            }
+        });
         mcVersionBox.setEnabled(true);
         seamVersionBox.setEnabled(true);
         populateSeamVersions((String) mcVersionBox.getSelectedItem());

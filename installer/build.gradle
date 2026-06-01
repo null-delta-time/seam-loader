@@ -13,8 +13,9 @@ def generateInstallerMeta = tasks.register('generateInstallerMeta') {
             def tag = mod.findProperty('tag') ?: mod.name
             def ver = mod.version?.toString()
             if (!ver || ver == 'unspecified') throw new GradleException("${mod.name} has no version set in gradle.properties")
-            def mc  = mod.ext.targetMcVersion
-            "        new BundledLoader(\"${mc}\", \"${tag}\", \"${ver}\")"
+            def mc      = mod.ext.targetMcVersion
+            def display = mod.ext.has('mcVersionDisplayName') ? mod.ext.mcVersionDisplayName : mc
+            "        new BundledLoader(\"${mc}\", \"${display}\", \"${tag}\", \"${ver}\")"
         }.join(',\n')
         def isSnapshot = loaders.any { mod -> mod.version?.toString()?.endsWith('-SNAPSHOT') ?: false }
 
@@ -39,10 +40,11 @@ ${entries}
 
     public static final class BundledLoader {
         public final String mcVersion;
+        public final String displayName;
         public final String tag;
         public final String version;
-        public BundledLoader(String mcVersion, String tag, String version) {
-            this.mcVersion = mcVersion; this.tag = tag; this.version = version;
+        public BundledLoader(String mcVersion, String displayName, String tag, String version) {
+            this.mcVersion = mcVersion; this.displayName = displayName; this.tag = tag; this.version = version;
         }
         public String resourceName() { return "seam-agent-" + tag + ".jar"; }
         public boolean isSnapshot()  { return version.endsWith("-SNAPSHOT"); }

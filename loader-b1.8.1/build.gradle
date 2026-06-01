@@ -1,8 +1,9 @@
 ext.targetMcVersion = 'b1.8.1'
+ext.mcVersionDisplayName = 'Beta 1.8.1'
 
 def generateSeamMeta = tasks.register('generateSeamMeta') {
     def ver = project.version
-    def mc  = project.ext.targetMcVersion
+    def mc  = project.ext.has('mcVersionDisplayName') ? project.ext.mcVersionDisplayName : project.ext.targetMcVersion
     def outDir = layout.buildDirectory.dir('generated-src')
     outputs.dir(outDir)
     doLast {
