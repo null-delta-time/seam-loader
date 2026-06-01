@@ -1,0 +1,36 @@
+name: Release Installer
+
+on:
+  push:
+    tags:
+      - 'installer-v[0-9]*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Build installer
+        run: |
+          VERSION=${GITHUB_REF_NAME#installer-v}
+          # processResources already depends on each loader-* :jar task via build.gradle,
+          # so all bundled agents are built automatically.
+          ./gradlew :installer:shadowJar -Pversion=${VERSION}
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            installer/build/libs/seam-installer-*.jar

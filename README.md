@@ -1,13 +1,15 @@
 # Seam
 
-A mod loader for Minecraft Beta 1.8.1, built from scratch. Not a Fabric/Forge backport — a standalone tool that patches the original game JAR at load time using a Java agent.
+A mod loader for pre-release Minecraft versions, built from scratch. Not a Fabric/Forge backport — a standalone tool that patches the original game JAR at load time using a Java agent.
+
+Currently supports **Beta 1.8.1**. Additional pre-release targets can be added as `loader-*` modules.
 
 ## Installation
 
 Download `seam-installer-<version>.jar` from the [releases page](../../releases) and run it:
 
 ```
-java -jar seam-installer-0.1.0.jar
+java -jar seam-installer-<version>.jar
 ```
 
 Or double-click it if your OS associates `.jar` with Java.
@@ -15,10 +17,10 @@ Or double-click it if your OS associates `.jar` with Java.
 The installer:
 1. Auto-detects your Minecraft directory
 2. Installs `seam-agent.jar` into `<minecraft_dir>/seam/`
-3. Creates a `seam-b1.8.1` version entry in `versions/`
-4. Adds a **Seam b1.8.1** profile to `launcher_profiles.json`
+3. Creates a version entry in `versions/`
+4. Adds a **Seam** profile to `launcher_profiles.json`
 
-Open the Minecraft Launcher, select **Seam b1.8.1**, and hit Play.
+Open the Minecraft Launcher, select the **Seam** profile, and hit Play.
 
 ### Uninstalling
 
@@ -30,13 +32,20 @@ Drop mod JARs into `<minecraft_dir>/seam/mods/`. Each mod must have a `seam.mod.
 
 ## How it works
 
-Seam runs as a Java agent (`-javaagent`) before the game starts. It uses ASM to patch obfuscated game bytecode at load time — no deobfuscation, no intermediary mappings, patches work directly on names like `bv`, `iw`, `sf`.
+Seam runs as a Java agent (`-javaagent`) before the game starts. It uses ASM to patch obfuscated game bytecode at load time — no deobfuscation, no intermediary mappings, patches work directly on raw obfuscated names.
 
 | Module | Role |
 |---|---|
 | `api` | Public contract for mods: `ModInitializer`, `ClassTransformer`, event types |
 | `loader-core` | Version-agnostic: discovers mod JARs, reads `seam.mod.json`, classloads and initializes mods |
-| `loader-b1.8.1` | b1.8.1-specific agent: registers bytecode transformers, wires into LaunchWrapper |
+| `loader-<version>` | Version-specific agent: registers bytecode transformers, wires into LaunchWrapper |
+| `installer` | Swing GUI installer: auto-detects Minecraft dir, writes version descriptor, updates launcher profiles |
+
+## Building
+
+```
+./gradlew installer:shadowJar   # produces installer/build/libs/seam-installer-<version>.jar
+```
 
 ## License
 
