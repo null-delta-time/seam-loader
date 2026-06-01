@@ -1,24 +1,30 @@
 # Release process
 
-Tag and push — the workflow handles the rest.
+Releases are triggered manually via the [Release workflow](.github/workflows/release-all.yml) on GitHub Actions (Actions → Release → Run workflow).
 
-```
-git tag b181-v1.0.0
-git push origin main --tags
-```
+The version in `gradle.properties` stays `-SNAPSHOT` at all times. The [CI version-bump check](.github/workflows/ci.yml) enforces that any PR touching `src/` bumps the snapshot version. The workflow strips `-SNAPSHOT` at release time — no git tags to push manually.
 
-The [release workflow](.github/workflows/release.yml) finds the subproject by matching the tag prefix against `tag=` in each module's `gradle.properties`, builds the JAR with the version from the tag, updates `versions.json` for loader modules, and publishes to GitHub Releases.
+## Workflow inputs
 
-The version in `gradle.properties` stays `-SNAPSHOT` at all times. The [CI version-bump check](.github/workflows/ci.yml) enforces that any PR touching `src/` bumps the snapshot version — so by the time you tag, the version you're releasing is already in the file as `X.Y.Z-SNAPSHOT`.
+| Input | Default | Description |
+|---|---|---|
+| `release_core` | false | Release `api` + `loader-core` (tagged `core-v{VERSION}`) |
+| `release_loaders` | `all` | `all`, comma-separated loader short names (e.g. `b181`), or empty/`none` to skip |
+| `release_installer` | true | Release the installer (do this whenever releasing loaders) |
+
+Each loader's tag prefix comes from `tag=` in its `gradle.properties`. A loader is only eligible if its `build.gradle` contains `targetMcVersion`.
+
+After a loader release, `versions.json` is updated automatically and committed back to `main`.
 
 ## Hotfix on an old release
 
 ```
-git checkout -b hotfix/b181-1.0.x b181-v1.0.0
-# fix, bump version in loader-b1.8.1/gradle.properties to 1.0.1-SNAPSHOT
+# The release workflow creates a tag (e.g. b181-v0.1.0) — branch from it
+git checkout -b hotfix/b181-0.1.x b181-v0.1.0
+# fix, bump loader-b1.8.1/gradle.properties to 0.1.1-SNAPSHOT
 git commit -am "fix: ..."
-git tag b181-v1.0.1
-git push origin hotfix/b181-1.0.x --tags
+git push origin hotfix/b181-0.1.x
+# Trigger the Release workflow on the hotfix branch, release_loaders=b181
 ```
 
 Then cherry-pick the `versions.json` commit onto `main`.

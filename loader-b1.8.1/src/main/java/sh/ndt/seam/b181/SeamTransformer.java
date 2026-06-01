@@ -3,6 +3,7 @@ package sh.ndt.seam.b181;
 import sh.ndt.seam.api.ClassTransformer;
 import sh.ndt.seam.api.SeamApi;
 import sh.ndt.seam.b181.patch.ClientTickPatch;
+import sh.ndt.seam.b181.patch.MainMenuPatch;
 import sh.ndt.seam.b181.patch.TitlePatch;
 import sh.ndt.seam.b181.patch.VersionStringPatch;
 
@@ -31,6 +32,9 @@ public final class SeamTransformer implements ClassFileTransformer {
 
         try { bytes = applyBuiltin("TitlePatch", className, bytes, TitlePatch.apply(className, bytes)); }
         catch (Throwable t) { System.err.println("[Seam] TitlePatch failed on " + className + ": " + t); }
+
+        try { bytes = applyBuiltin("MainMenuPatch", className, bytes, MainMenuPatch.apply(bytes)); }
+        catch (Throwable t) { System.err.println("[Seam] MainMenuPatch failed on " + className + ": " + t); }
 
         for (ClassTransformer t : SeamApi.getTransformers()) {
             try {
