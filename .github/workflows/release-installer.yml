@@ -25,7 +25,7 @@ jobs:
           VERSION=${GITHUB_REF_NAME#installer-v}
           # processResources already depends on each loader-* :jar task via build.gradle,
           # so all bundled agents are built automatically.
-          ./gradlew :installer:jar -Pversion=${VERSION}
+          ./gradlew :installer:jar -PinstallerVersion=${VERSION}
 
       - name: Publish release
         uses: softprops/action-gh-release@v2

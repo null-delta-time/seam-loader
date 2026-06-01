@@ -75,7 +75,7 @@ tasks.named('processResources') {
 
 jar {
     archiveBaseName.set('seam-installer')
-    archiveVersion.set(project.version)
+    archiveVersion.set((findProperty('installerVersion') ?: project.version).toString())
 
     manifest {
         attributes 'Main-Class': 'sh.ndt.seam.installer.Main'
