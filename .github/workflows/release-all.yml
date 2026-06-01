@@ -10,7 +10,7 @@ on:
       release_loaders:
         description: 'Loader tags to release: "all", comma-separated (e.g. b181,b170), or empty/none to skip'
         type: string
-        default: 'all'
+        default: 'none'
       release_installer:
         description: 'Release installer (only when installer code changes)'
         type: boolean
@@ -90,18 +90,7 @@ jobs:
         if: inputs.release_installer
         run: |
           INSTALLER_VER=$(grep "^version=" installer/gradle.properties | cut -d= -f2 | sed 's/-SNAPSHOT//')
-          # Build loaders with their release versions so the bundled agent is not a SNAPSHOT
-          LOADER_TASKS=""
-          VERSION_ARGS=""
-          for props in loader-*/gradle.properties; do
-            dir=$(dirname "$props")
-            grep -q "targetMcVersion" "${dir}/build.gradle" || continue
-            VER=$(grep "^version=" "$props" | cut -d= -f2 | sed 's/-SNAPSHOT//')
-            name=$(basename "$dir")
-            LOADER_TASKS="${LOADER_TASKS} :${dir}:jar"
-            VERSION_ARGS="${VERSION_ARGS} -P${name}.version=${VER}"
-          done
-          ./gradlew ${LOADER_TASKS} :installer:jar -PinstallerVersion=${INSTALLER_VER} ${VERSION_ARGS}
+          ./gradlew :installer:jar -PinstallerVersion=${INSTALLER_VER}
           gh release create "installer-v${INSTALLER_VER}" \
             installer/build/libs/seam-installer-*.jar \
             --generate-notes --latest \
