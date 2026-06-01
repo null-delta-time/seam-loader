@@ -45,4 +45,6 @@ jobs:
           generate_release_notes: true
           make_latest: true
           files: |
+            api/build/libs/*.jar
+            loader-core/build/libs/*.jar
             loader-*/build/libs/*.jar
