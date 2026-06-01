@@ -17,8 +17,8 @@ def generateInstallerMeta = tasks.register('generateInstallerMeta') {
             def display = mod.ext.has('mcVersionDisplayName') ? mod.ext.mcVersionDisplayName : mc
             "        new BundledLoader(\"${mc}\", \"${display}\", \"${tag}\", \"${ver}\")"
         }.join(',\n')
-        def isSnapshot = loaders.any { mod -> mod.version?.toString()?.endsWith('-SNAPSHOT') ?: false }
         def installerVer = (findProperty('installerVersion') ?: project.version).toString()
+        def isSnapshot = installerVer.endsWith('-SNAPSHOT')
 
         def f = outDir.get().file('sh/ndt/seam/installer/InstallerMeta.java').asFile
         f.parentFile.mkdirs()
