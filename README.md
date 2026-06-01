@@ -44,7 +44,7 @@ Seam runs as a Java agent (`-javaagent`) before the game starts. It uses ASM to 
 ## Building
 
 ```
-./gradlew installer:shadowJar   # produces installer/build/libs/seam-installer-<version>.jar
+./gradlew installer:jar   # produces installer/build/libs/seam-installer-<version>.jar
 ```
 
 ## License
