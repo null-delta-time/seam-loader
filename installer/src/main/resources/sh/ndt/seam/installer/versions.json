@@ -1,6 +1,10 @@
 {
     "b1.8.1": [
         {
+            "version": "0.2.0",
+            "url": "https://github.com/null-delta-time/seam-loader/releases/download/b181-v0.2.0/seam-b181-0.2.0.jar"
+        },
+        {
             "version": "0.1.0",
             "url": "https://github.com/null-delta-time/seam-loader/releases/download/b181-v0.1.0/seam-b181-0.1.0.jar"
         }

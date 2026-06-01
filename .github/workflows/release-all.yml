@@ -53,6 +53,7 @@ jobs:
         run: |
           FILTER="${{ inputs.release_loaders }}"
           RELEASED=false
+          VERSION_ARGS=""
           if [ -z "$FILTER" ] || [ "$FILTER" = "none" ]; then
             echo "No loaders selected — skipping."
             echo "any=false" >> $GITHUB_OUTPUT
@@ -67,6 +68,8 @@ jobs:
               echo ",$FILTER," | grep -q ",${tag_prefix}," || { echo "Skipping ${tag_prefix}"; continue; }
             fi
             VERSION=$(grep "^version=" "$props" | cut -d= -f2 | sed 's/-SNAPSHOT//')
+            name=$(basename "$dir")
+            VERSION_ARGS="${VERSION_ARGS} -P${name}.version=${VERSION}"
             ./gradlew :${dir}:jar -Pversion=${VERSION}
             gh release create "${tag_prefix}-v${VERSION}" \
               ${dir}/build/libs/*.jar \
@@ -75,13 +78,14 @@ jobs:
             RELEASED=true
           done
           echo "any=${RELEASED}" >> $GITHUB_OUTPUT
+          echo "version_args=${VERSION_ARGS}" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Update versions.json
         if: steps.loaders.outputs.any == 'true'
         run: |
-          ./gradlew updateVersionsJson
+          ./gradlew updateVersionsJson ${{ steps.loaders.outputs.version_args }} -PgithubRepo=${{ github.repository }}
           git add installer/src/main/resources/sh/ndt/seam/installer/versions.json
           git diff --cached --quiet || git commit -m "chore: update versions.json"
           git push origin HEAD:refs/heads/main
