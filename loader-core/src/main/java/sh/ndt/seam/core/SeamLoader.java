@@ -67,7 +67,8 @@ public class SeamLoader {
 
         String displayName = meta.name != null ? meta.name : meta.id;
         String version = meta.version != null ? meta.version : "?";
-        loaded.add(new ModCandidate(meta.id, displayName, version, jarPath, modLoader));
+        String description = meta.description != null ? meta.description : "";
+        loaded.add(new ModCandidate(meta.id, displayName, version, description, jarPath, modLoader));
         System.out.println("[Seam] Loaded mod: " + displayName + " " + version);
     }
 
