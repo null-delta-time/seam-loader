@@ -191,11 +191,6 @@ public final class ConfigScreen {
         m.invoke(screen, x1, y1, x2, y2, c1, c2);
     }
 
-    private static void drawString(Object fr, String text, int x, int y, int color) throws Exception {
-        findMethod(fr.getClass(), "a", String.class, int.class, int.class, int.class)
-            .invoke(fr, text, x, y, color);
-    }
-
     private static void drawCenteredString(Object fr, String text, int cx, int y, int color)
             throws Exception {
         int tw = (int) findMethod(fr.getClass(), "a", String.class).invoke(fr, text);
