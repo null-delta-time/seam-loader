@@ -1,6 +1,6 @@
 {
-  "id": "seam-b1.8.1",
-  "inheritsFrom": "b1.8.1",
+  "id": "${seam_version_id}",
+  "inheritsFrom": "${mc_version}",
   "releaseTime": "2026-05-31T00:00:00+00:00",
   "time": "2026-05-31T00:00:00+00:00",
   "type": "old_beta",

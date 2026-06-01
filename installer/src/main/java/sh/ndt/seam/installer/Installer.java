@@ -42,33 +42,34 @@ public class Installer {
         }
 
         log("Writing version descriptor...");
-        Path versionDir = mcDir.resolve("versions").resolve("seam-b1.8.1");
+        String versionId = "seam-" + mcVersion;
+        Path versionDir = mcDir.resolve("versions").resolve(versionId);
         Files.createDirectories(versionDir);
-        writeVersionJson(seamDir.resolve("seam-agent.jar"), versionDir.resolve("seam-b1.8.1.json"));
+        writeVersionJson(mcVersion, seamDir.resolve("seam-agent.jar"), versionDir.resolve(versionId + ".json"));
 
         // The launcher derives the game JAR path from the version ID:
-        // versions/seam-b1.8.1/seam-b1.8.1.jar. It must exist for the launcher to
+        // versions/<versionId>/<versionId>.jar. It must exist for the launcher to
         // compute ${classpath} and populate the -cp argument. Copy from the vanilla install.
         log("Copying game JAR...");
-        copyGameJar(versionDir.resolve("seam-b1.8.1.jar"));
+        copyGameJar(mcVersion, versionDir.resolve(versionId + ".jar"));
 
         log("Updating launcher_profiles.json...");
-        updateProfiles();
+        updateProfiles(mcVersion);
 
         log("Installation complete.");
     }
 
-    private void copyGameJar(Path dest) throws IOException {
+    private void copyGameJar(String mcVersion, Path dest) throws IOException {
         if (Files.exists(dest)) return;
-        Path vanilla = mcDir.resolve("versions").resolve("b1.8.1").resolve("b1.8.1.jar");
+        Path vanilla = mcDir.resolve("versions").resolve(mcVersion).resolve(mcVersion + ".jar");
         if (!Files.exists(vanilla)) {
             throw new IOException(
-                "b1.8.1 is not installed. Please run Minecraft b1.8.1 at least once before installing Seam.");
+                mcVersion + " is not installed. Please run Minecraft " + mcVersion + " at least once before installing Seam.");
         }
         Files.copy(vanilla, dest);
     }
 
-    private void writeVersionJson(Path agentJar, Path dest) throws IOException {
+    private void writeVersionJson(String mcVersion, Path agentJar, Path dest) throws IOException {
         String template;
         String path = "/sh/ndt/seam/installer/version-template.json";
         try (InputStream in = Installer.class.getResourceAsStream(path)) {
@@ -78,7 +79,10 @@ public class Installer {
         // ${game_directory} is not substituted in JVM args by the launcher; embed
         // the absolute agent path at install time.
         String agentPath = agentJar.toAbsolutePath().toString().replace("\\", "/");
-        String json = template.replace("${game_directory}/seam/seam-agent.jar", agentPath);
+        String json = template
+            .replace("${game_directory}/seam/seam-agent.jar", agentPath)
+            .replace("${seam_version_id}", "seam-" + mcVersion)
+            .replace("${mc_version}", mcVersion);
         Files.writeString(dest, json, StandardCharsets.UTF_8);
     }
 
@@ -108,7 +112,7 @@ public class Installer {
         }
     }
 
-    private void updateProfiles() throws IOException {
+    private void updateProfiles(String mcVersion) throws IOException {
         Path profilesFile = mcDir.resolve("launcher_profiles.json");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -124,15 +128,18 @@ public class Installer {
 
         if (!root.has("profiles")) root.add("profiles", new JsonObject());
 
+        String versionId = "seam-" + mcVersion;
+        String profileKey = "seam-" + mcVersion.replace(".", "");
+
         JsonObject profile = new JsonObject();
-        profile.addProperty("name", "Seam b1.8.1");
+        profile.addProperty("name", "Seam " + mcVersion);
         profile.addProperty("type", "custom");
         profile.addProperty("created", Instant.now().toString());
         profile.addProperty("lastUsed", "1970-01-01T00:00:00.000Z");
-        profile.addProperty("lastVersionId", "seam-b1.8.1");
+        profile.addProperty("lastVersionId", versionId);
         profile.addProperty("icon", "Furnace");
 
-        root.getAsJsonObject("profiles").add("seam-b181", profile);
+        root.getAsJsonObject("profiles").add(profileKey, profile);
 
         try (Writer w = Files.newBufferedWriter(profilesFile, StandardCharsets.UTF_8)) {
             gson.toJson(root, w);
