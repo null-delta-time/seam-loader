@@ -46,7 +46,9 @@ public final class SeamHooks {
             final String t = title;
             java.awt.EventQueue.invokeLater(() -> {
                 for (java.awt.Frame f : java.awt.Frame.getFrames()) {
-                    if (f.isDisplayable()) f.setTitle(t);
+                    if (!f.isDisplayable()) continue;
+                    f.setTitle(t);
+                    break;
                 }
             });
         } catch (Throwable ignored) {}
