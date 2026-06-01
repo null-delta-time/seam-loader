@@ -68,7 +68,7 @@ public final class SeamApi {
 
     public static List<ConfigEntry> getConfigEntries(String modId) {
         List<ConfigEntry> entries = configEntries.get(modId);
-        return entries != null ? entries : Collections.emptyList();
+        return entries != null ? Collections.unmodifiableList(entries) : Collections.emptyList();
     }
 
     public static boolean hasConfig(String modId) {
@@ -91,7 +91,7 @@ public final class SeamApi {
     }
 
     public static Set<String> getRegisteredConfigModIds() {
-        return configEntries.keySet();
+        return Collections.unmodifiableSet(new LinkedHashSet<>(configEntries.keySet()));
     }
 
     private SeamApi() {}

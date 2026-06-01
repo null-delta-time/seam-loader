@@ -14,7 +14,7 @@ public final class ConfigManager {
     private static Path configDir;
 
     public static void init(Path gameDir) {
-        configDir = gameDir.resolve("seam/config");
+        configDir = gameDir.resolve("seam/config").normalize();
     }
 
     public static void loadAll() {
