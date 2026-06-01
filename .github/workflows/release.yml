@@ -31,7 +31,6 @@ jobs:
           [ -n "$DIR" ] || { echo "No subproject found with tag=${PREFIX}"; exit 1; }
 
           ./gradlew :${DIR}:jar -Pversion=${VERSION}
-          ./gradlew :installer:jar -Pversion=${VERSION}
 
           ./gradlew updateVersionsJson -Pversion=${VERSION}
           git config user.name "github-actions[bot]"
